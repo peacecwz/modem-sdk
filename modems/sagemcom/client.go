@@ -3,13 +3,18 @@ package sagemcom
 import (
 	"fmt"
 	"github.com/peacecwz/modem-sdk/pkg/client"
+	"github.com/sirupsen/logrus"
 )
 
 type Client struct {
 	httpClient     *client.Client
 	PortForwarding *PortForwardingClient
 	User           *UserClient
-	LoggedSession  *LoginResponse
+	IPV4           *IPV4Client
+	Network        *NetworkClient
+	System         *SystemClient
+
+	LoggedSession *LoginResponse
 }
 
 func NewSagemcomClient(baseAddress string) *Client {
@@ -18,6 +23,9 @@ func NewSagemcomClient(baseAddress string) *Client {
 		httpClient:     httpClient,
 		PortForwarding: NewSagemcomPortForwardingClient(httpClient),
 		User:           NewSagemcomUserClient(httpClient),
+		IPV4:           NewSagemcomIPV4Client(httpClient),
+		Network:        NewSagemcomNetworkClient(httpClient),
+		System:         NewSagemcomSystemClient(httpClient),
 	}
 }
 
@@ -29,6 +37,7 @@ func (c *Client) Login(password string) (bool, error) {
 
 	c.httpClient.AddHeader("Authorization", fmt.Sprintf("Bearer %s", resp.Created.Token))
 	c.LoggedSession = resp
+	logrus.Infof("Logged in as %d, token:%s\n", resp.Created.UserID, resp.Created.Token)
 
 	return true, nil
 }
